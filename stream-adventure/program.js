@@ -1,7 +1,19 @@
-var spawn = require('child_process').spawn,
-    duplexer = require('duplexer2');
+var duplexer = require('duplexer2'),
+    through = require('through2').obj;
 
-module.exports = function (cmd, args) {
-  var cmdProc = spawn(cmd, args);
-  return duplexer(cmdProc.stdin, cmdProc.stdout);
+module.exports = function (counter) {
+  var counts = {},
+      writable = through(write, end);
+
+  function write(row, _, next) {
+    counts[row.country] = (counts[row.country] || 0) + 1;
+    next();
+  }
+
+  function end(done) {
+    counter.setCounts(counts);
+    done();
+  }
+
+  return duplexer({objectMode: true}, writable, counter);
 };
