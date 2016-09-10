@@ -1,15 +1,7 @@
-var trumpet = require('trumpet'),
-    through = require('through2'),
-    tr = trumpet();
+var spawn = require('child_process').spawn,
+    duplexer = require('duplexer2');
 
-function write(buf, _, next) {
-  this.push(buf.toString().toUpperCase());
-  next();
-}
-
-var stream = tr.select('.loud').createStream();
-// read pipe: reads inner html
-// write pipe: replaced inner html
-stream.pipe(through(write)).pipe(stream);
-
-process.stdin.pipe(tr).pipe(process.stdout);
+module.exports = function (cmd, args) {
+  var cmdProc = spawn(cmd, args);
+  return duplexer(cmdProc.stdin, cmdProc.stdout);
+};
