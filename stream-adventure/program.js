@@ -1,4 +1,15 @@
-var ws = require('websocket-stream');
-var stream = ws('ws://localhost:8099');
+var trumpet = require('trumpet'),
+    through = require('through2'),
+    tr = trumpet();
 
-stream.write('hello\n');
+function write(buf, _, next) {
+  this.push(buf.toString().toUpperCase());
+  next();
+}
+
+var stream = tr.select('.loud').createStream();
+// read pipe: reads inner html
+// write pipe: replaced inner html
+stream.pipe(through(write)).pipe(stream);
+
+process.stdin.pipe(tr).pipe(process.stdout);
